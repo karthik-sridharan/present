@@ -210,9 +210,11 @@ function renderFreeformBlocks(blocks, slide){
 }
 function buildSlideInner(slide){
   const heading = slide.headingLevel || 'h2';
-  const titleHtml = '<div class="preview-title" data-preview-role="title"' + animationDataAttrs(slide.titleAnimation) + ' style="' + titleWrapperStyle(slide.titleStyle, heading) + '"><' + heading + '>' + escapeHtml(slide.title || 'Untitled slide').replace(/\n/g,'<br>') + '</' + heading + '></div>';
-  const kickerHtml = slide.kicker ? '<div class="kicker">' + escapeHtml(slide.kicker) + '</div>' : '';
-  const ledeHtml = slide.lede ? '<div class="lede">' + escapeHtml(slide.lede) + '</div>' : '';
+  const _decodeNl = (s) => String(s||'').replace(/\\n/g,'\n').replace(/\\r/g,'');
+  const _nl2br = (s) => escapeHtml(s).replace(/\n/g,'<br>');
+  const titleHtml = '<div class="preview-title" data-preview-role="title"' + animationDataAttrs(slide.titleAnimation) + ' style="' + titleWrapperStyle(slide.titleStyle, heading) + '"><' + heading + '>' + _nl2br(_decodeNl(slide.title || 'Untitled slide')) + '</' + heading + '></div>';
+  const kickerHtml = slide.kicker ? '<div class="kicker">' + _nl2br(_decodeNl(slide.kicker)) + '</div>' : '';
+  const ledeHtml = slide.lede ? '<div class="lede">' + _nl2br(_decodeNl(slide.lede)) + '</div>' : '';
   const s = normalizeSlide(slide);
   if(s.slideType === 'title-center') return '<div class="title-center">' + titleHtml + kickerHtml + '</div>';
   if(isFreeformSlide(s)) return renderFreeformBlocks(s.leftBlocks, s);
