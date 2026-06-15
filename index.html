@@ -911,6 +911,68 @@ window.MathJax = {
           <div class="smallcaps">Import tools</div>
           <div class="help" style="margin-top:.45rem">First-pass importers for outlines and reference assets. PDF, PPTX, and legacy PPT can be converted into editable Lumina slides through the optional extraction backend.</div>
 
+          <div class="field-grid" style="margin-top:.75rem;padding:.75rem;background:rgba(255,255,255,.04);border-radius:.55rem;border:1px solid rgba(255,255,255,.1)">
+            <div class="field full">
+              <label for="backendUrlInput">Backend URL</label>
+              <div style="display:flex;gap:.45rem;align-items:center">
+                <input id="backendUrlInput" type="url" placeholder="http://localhost:3001" style="flex:1" />
+                <button class="btn primary mini" type="button" id="connectBackendBtn">Connect</button>
+                <button class="btn mini" type="button" id="disconnectBackendBtn" title="Reset to defaults">Disconnect</button>
+              </div>
+              <div class="help" style="margin-top:.3rem">Set your Lumina backend base URL — configures extraction, AI, and export endpoints automatically. <span id="backendConnectStatus" style="font-weight:600"></span></div>
+            </div>
+          </div>
+          <script>
+          (function(){
+            var STORAGE_KEY = 'luminaBackendUrl';
+            function byId(id){ return document.getElementById(id); }
+            function applyBackendUrl(url){
+              url = (url||'').replace(/\/+$/,'');
+              if(!url) return;
+              var exEl = byId('extractionEndpointInput');
+              var aiEl = byId('copilotEndpoint');
+              var tkEl = byId('extractionTokenInput');
+              if(exEl) exEl.value = url + '/api/lumina/extract';
+              if(aiEl) aiEl.value = url + '/api/lumina/openai-proxy';
+              if(tkEl && !tkEl.value) tkEl.value = '';
+              try{ localStorage.setItem(STORAGE_KEY, url); }catch(_e){}
+              try{ localStorage.setItem('luminaExtractionEndpoint', url + '/api/lumina/extract'); }catch(_e){}
+              var st = byId('backendConnectStatus');
+              if(st){ st.textContent = 'Connected to ' + url; st.style.color = '#6fcf97'; }
+            }
+            function disconnectBackend(){
+              var exEl = byId('extractionEndpointInput');
+              var aiEl = byId('copilotEndpoint');
+              if(exEl) exEl.value = '/api/lumina/extract';
+              if(aiEl) aiEl.value = 'https://api.openai.com/v1/responses';
+              try{ localStorage.removeItem(STORAGE_KEY); localStorage.removeItem('luminaExtractionEndpoint'); }catch(_e){}
+              var inp = byId('backendUrlInput');
+              if(inp) inp.value = '';
+              var st = byId('backendConnectStatus');
+              if(st){ st.textContent = 'Disconnected — using defaults.'; st.style.color = ''; }
+            }
+            function init(){
+              var inp = byId('backendUrlInput');
+              var saved;
+              try{ saved = localStorage.getItem(STORAGE_KEY); }catch(_e){}
+              if(saved && inp){
+                inp.value = saved;
+                applyBackendUrl(saved);
+              }
+              var btn = byId('connectBackendBtn');
+              if(btn) btn.addEventListener('click', function(){
+                var url = (byId('backendUrlInput')&&byId('backendUrlInput').value||'').trim();
+                if(!url){ alert('Enter a backend URL first, e.g. http://localhost:3001'); return; }
+                applyBackendUrl(url);
+              }, true);
+              var dis = byId('disconnectBackendBtn');
+              if(dis) dis.addEventListener('click', disconnectBackend, true);
+            }
+            if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+            else init();
+          })();
+          </script>
+
           <div class="field-grid" style="margin-top:.75rem">
             <div class="field">
               <label for="importModeSelect">Import mode</label>
